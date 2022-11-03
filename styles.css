@@ -1,0 +1,150 @@
+html, body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+
+* {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#noscript {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#game-container {
+    height: 100%;
+    width: 100vw;
+    display: flex;
+}
+
+#game-container > div {
+    outline: 1px solid black;
+}
+
+#cookie-container {
+    width: calc(100% / 3);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+#cookie-container * {
+    text-align: center;
+}
+
+#middle-container {
+    width: calc(100% / 3);
+    height: 100%;
+}
+
+#buy-items-container {
+    width: calc(100% / 3);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+#cookie-image:hover {
+    cursor: pointer;
+    animation: cookie-enlarge 100ms forwards;
+}
+
+#cookie-image:active {
+    animation: cookie-click 100ms forwards;
+}
+
+.item-buy-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    border: 3px solid black;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    cursor: pointer;
+}
+
+.item-info-container {
+    display: flex;
+    justify-content: space-around;
+    width: 60%;
+}
+
+.item-info-container > img {
+    height: 70px;
+}
+
+.item-amount-container {
+    width: 40%;
+    text-align: right;
+}
+
+.item-name-and-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.item-name-and-price-container > * {
+    margin: 0;
+}
+
+.item-amount-container > h1 {
+    margin-right: 10px;
+}
+
+.not-affordable {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+#added-cookies-from-click > h2 {
+    margin: 0;
+}
+
+.added-cookies-from-click-message {
+    animation: added-cookies-from-click-message 1500ms forwards;
+    pointer-events: none;
+}
+
+@keyframes cookie-click {
+    100% {
+        transform: scale(0.95);
+    }
+}
+
+@keyframes cookie-enlarge {
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes added-cookies-from-click-message {
+    30% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.3;
+    }
+    90% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-175px);
+    }
+}

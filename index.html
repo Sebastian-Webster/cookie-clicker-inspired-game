@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>0 Cookies</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <template id="added-cookies-from-click">
+            <h2 class="added-cookies-from-click-message">+0 Cookies</h2>
+        </template>
+        <noscript>
+            <div id="noscript">
+                <h1>Well...</h1>
+                <h2>This page looks a bit boring. Doesn't it?</h2>
+                <br>
+                <h1>Please turn on JavaScript to enjoy this game!</h1>
+            </div>
+        </noscript>
+        <div id="game-container">
+            <div id="cookie-container">
+                <h1 id="cookie-amount">0 Cookies</h1>
+                <h2 id="cps-amount">0 CPS</h2>
+                <img src="images/cookie.png" alt="Cookie" id="cookie-image">
+            </div>
+            <div id="middle-container">
+
+            </div>
+            <div id="buy-items-container">
+                <h1>Buy Items</h1>
+                <div class="item-buy-container not-affordable" id="buy-cursor-container" onclick="buyCursor()">
+                    <div class="item-info-container">
+                        <img src="images/cursor.webp" alt="Cursor">
+                        <div class="item-name-and-price-container">
+                            <h1>Cursor</h1>
+                            <h3 id="cursor-price">10 Cookies</h3>
+                        </div>
+                    </div>
+                    <div class="item-amount-container">
+                        <h1 id="cursor-amount">0</h1>
+                    </div>
+                </div>
+                <div class="item-buy-container not-affordable" id="buy-grandma-container" onclick="buyGrandma()">
+                    <div class="item-info-container">
+                        <img src="images/grandma.webp" alt="Cursor">
+                        <div class="item-name-and-price-container">
+                            <h1>Grandma</h1>
+                            <h3 id="grandma-price">100 Cookies</h3>
+                        </div>
+                    </div>
+                    <div class="item-amount-container">
+                        <h1 id="grandma-amount">0</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="script.js"></script>
+</html>
