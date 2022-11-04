@@ -27,37 +27,37 @@ function numberWithCommas(x) { //Function from https://stackoverflow.com/a/29012
 
 function returnCursorPrice() {
     //Initial price is 10
-    return Math.floor(10 * gameState.buyMultiplier + ((gameState.cursorsOwned + 1) * gameState.buyMultiplier) * 2 * (((gameState.cursorsOwned + 1) * gameState.buyMultiplier) / 10))
+    return Math.floor(10 * gameState.buyMultiplier + ((gameState.cursorsOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.cursorsOwned + gameState.buyMultiplier) / 10))
 }
 
 function returnGrandmaPrice() {
     //Initial price is 100
-    return Math.floor(100 * gameState.buyMultiplier + ((gameState.grandmasOwned + 1) * gameState.buyMultiplier) * 2 * (((gameState.grandmasOwned + 1) * gameState.buyMultiplier) / 8))
+    return Math.floor(100 * gameState.buyMultiplier + ((gameState.grandmasOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.grandmasOwned + gameState.buyMultiplier) / 8))
 }
 
 function returnFarmPrice() {
     //Initial price is 1,100
-    return Math.floor(1100 * gameState.buyMultiplier + ((gameState.farmsOwned + 1) * gameState.buyMultiplier) * 2 * (((gameState.farmsOwned + 1) * gameState.buyMultiplier) / 6))
+    return Math.floor(1100 * gameState.buyMultiplier + ((gameState.farmsOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.farmsOwned + gameState.buyMultiplier) / 6))
 }
 
 function returnMinePrice() {
     //Initial price is 12,000
-    return Math.floor(12000 * gameState.buyMultiplier + ((gameState.minesOwned + 1) * gameState.buyMultiplier) * 2 * (((gameState.minesOwned + 1) * gameState.buyMultiplier) / 4))
+    return Math.floor(12000 * gameState.buyMultiplier + ((gameState.minesOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.minesOwned + gameState.buyMultiplier) / 4))
 }
 
 function returnFactoryPrice() {
     //Initial price is 130,000
-    return Math.floor(129_999 * gameState.buyMultiplier + ((gameState.factoriesOwned + 1) * gameState.buyMultiplier) * 2 * (((gameState.factoriesOwned + 1) * gameState.buyMultiplier) / 2))
+    return Math.floor(129_999 * gameState.buyMultiplier + ((gameState.factoriesOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.factoriesOwned + gameState.buyMultiplier) / 2))
 }
 
 function returnBankPrice() {
     //Initial price is 1,400,000
-    return Math.floor(1_399_996 * gameState.buyMultiplier + (((gameState.banksOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.banksOwned + 1) * gameState.buyMultiplier) * 2))
+    return Math.floor(1_399_996 * gameState.buyMultiplier + (((gameState.banksOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.banksOwned + gameState.buyMultiplier) * 2)))
 }
 
 function returnTemplePrice() {
     //Initial price is 20 million
-    return Math.floor(19_999_992 * gameState.buyMultiplier + (((gameState.templesOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.templesOwned + 1) * gameState.buyMultiplier) * 4))
+    return Math.floor(19_999_992 * gameState.buyMultiplier + (((gameState.templesOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.templesOwned + gameState.buyMultiplier) * 4)))
 }
 
 function isCursorAffordable() {
