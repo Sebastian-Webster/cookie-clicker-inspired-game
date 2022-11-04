@@ -49,17 +49,22 @@ html, body {
     text-align: center;
 }
 
+#cookie-container h2, #cookie-container h3 {
+    margin: 0;
+}
+
 #middle-container {
     width: calc(100% / 3);
     height: 100%;
 }
 
-#buy-items-container {
+#buy-container {
     width: calc(100% / 3);
     height: 100%;
     display: flex;
     align-items: center;
     flex-direction: column;
+    overflow-y: scroll;
 }
 
 #cookie-image:hover {
@@ -124,6 +129,34 @@ html, body {
     pointer-events: none;
 }
 
+#buy-upgrades-container {
+    height: 100px;
+    width: 100%;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+#buy-multiplier-container {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#buy-multiplier-container > h3 {
+    margin: 0px;
+    cursor: pointer;
+}
+
+.selected-multiplier {
+    color: green;
+}
+
+#extra-cps-amount {
+    height: 22px;
+}
+
 @keyframes cookie-click {
     100% {
         transform: scale(0.95);
@@ -149,5 +182,17 @@ html, body {
     100% {
         opacity: 0;
         transform: translateY(-175px);
+    }
+}
+
+@keyframes fade-in-and-out {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
     }
 }

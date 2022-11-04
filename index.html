@@ -20,14 +20,26 @@
             <div id="cookie-container">
                 <h1 id="cookie-amount">0 Cookies</h1>
                 <h2 id="cps-amount">0 CPS</h2>
+                <h3 id="extra-cps-amount"></h3>
                 <img src="images/cookie.png" alt="Cookie" id="cookie-image">
             </div>
             <div id="middle-container">
                 <h1 style="text-align: center;">Stuff will be put here soon</h1>
                 <h2 style="text-align: center;">Upgrades, stats, settings, and more items will be coming soon as well</h2>
             </div>
-            <div id="buy-items-container">
+            <div id="buy-container">
+                <h1>Buy Upgrades</h1>
+                <div id="buy-upgrades-container">
+                    <h3 style="text-align: center;">Upgrades coming soon</h3>
+                </div>
                 <h1>Buy Items</h1>
+                <div id="buy-multiplier-container">
+                    <h3 id="1x-multiplier" class="selected-multiplier" onclick="changeBuyMultiplier(1)">1x</h3>
+                    <h3 id="10x-multiplier" onclick="changeBuyMultiplier(10)">10x</h3>
+                    <h3 id="25x-multiplier" onclick="changeBuyMultiplier(25)">25x</h3>
+                    <h3 id="50x-multiplier" onclick="changeBuyMultiplier(50)">50x</h3>
+                    <h3 id="100x-multiplier" onclick="changeBuyMultiplier(100)">100x</h3>
+                </div>
                 <div class="item-buy-container not-affordable" id="buy-cursor-container" onclick="buyCursor()">
                     <div class="item-info-container">
                         <img src="images/cursor.webp" alt="Cursor">
@@ -86,6 +98,30 @@
                     </div>
                     <div class="item-amount-container">
                         <h1 id="factory-amount">0</h1>
+                    </div>
+                </div>
+                <div class="item-buy-container not-affordable" id="buy-bank-container" onclick="buyBank()">
+                    <div class="item-info-container">
+                        <img src="images/bank.webp" alt="Bank">
+                        <div class="item-name-and-price-container">
+                            <h1>Bank</h1>
+                            <h5 id="bank-price">1,400,000 Cookies</h5>
+                        </div>
+                    </div>
+                    <div class="item-amount-container">
+                        <h1 id="bank-amount">0</h1>
+                    </div>
+                </div>
+                <div class="item-buy-container not-affordable" id="buy-temple-container" onclick="buyTemple()">
+                    <div class="item-info-container">
+                        <img src="images/temple.webp" alt="Temple">
+                        <div class="item-name-and-price-container">
+                            <h1>Temple</h1>
+                            <h5 id="temple-price">20,000,000 Cookies</h5>
+                        </div>
+                    </div>
+                    <div class="item-amount-container">
+                        <h1 id="temple-amount">0</h1>
                     </div>
                 </div>
             </div>
