@@ -115,7 +115,7 @@ html, body {
     margin-right: 10px;
 }
 
-.not-affordable {
+.item-buy-container.not-affordable {
     background-color: gray;
     cursor: not-allowed;
 }
@@ -131,6 +131,7 @@ html, body {
 
 #buy-upgrades-container {
     height: 100px;
+    min-height: 100px;
     width: 100%;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
@@ -155,6 +156,31 @@ html, body {
 
 #extra-cps-amount {
     height: 22px;
+}
+
+button.dangerous {
+    background-color: black;
+    color: red;
+    border: 2px solid red;
+    border-radius: 10px;
+    font-size: 20pt;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.upgrade-item {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    cursor: pointer;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.upgrade-item.not-affordable {
+    cursor: not-allowed;
+    background-color: gray;
 }
 
 @keyframes cookie-click {

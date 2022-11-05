@@ -1,7 +1,8 @@
-let gameState = {
+let gameState, defaultGameState = {
     cookies: 0,
     CPS: 0,
     clickAmount: 1,
+    clickAmountMultiplierPercentage: 100,
     buyMultiplier: 1,
     cursorsOwned: 0,
     cursorCPS: 0.1,
@@ -17,9 +18,137 @@ let gameState = {
     banksOwned: 0,
     bankCPS: 1400,
     templesOwned: 0,
-    templeCPS: 7800
+    templeCPS: 7800,
+    upgradesApplied: []
 }
 let currentlyHoveringOverItem;
+const upgrades = [
+    {
+        name: 'Reinforced Index Finger',
+        description: 'The mouse and cursor is <b>twice</b> as efficient',
+        quote: 'prod prod',
+        price: 100,
+        requirements: {
+            cursorsOwned: 1
+        },
+        benefits: {
+            add: {
+                clickAmountMultiplierPercentage: 100
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/ReinforcedIndexFinger.webp',
+        id: 0
+    }
+]
+let upgradesBeingRendered = []
+
+function checkAvailableUpgrades() {
+    //Get an array of upgrades the player has not unlocked
+    //by searching through the upgrades array and seeing if the upgrade's id
+    //is found in gameState.upgradesApplied
+    const upgradesToGet = upgrades.filter(upgrade => !gameState.upgradesApplied.includes(upgrade.id))
+    const availableUpgrades = []
+    for (const upgrade of upgradesToGet) {
+        //Get the requirements of the upgrade
+        let requirementsMet = true;
+        for ([requirementKey, requirementValue] of Object.entries(upgrade.requirements)) {
+            if (gameState[requirementKey] >= requirementValue) {
+                //Requirement is met
+            } else {
+                //Requirement is not met
+                requirementsMet = false;
+                break;
+            }
+        }
+        if (!requirementsMet) {
+            //Skip adding this upgrade to the availableUpgrades array as it's requirements
+            //have not been met
+            continue;
+        }
+        //If all requirements have been met
+        //add upgrade to the available upgrades array
+        availableUpgrades.unshift(upgrade)
+    }
+    //Check the affordability for all available upgrades
+    checkUpgradesAffordability(availableUpgrades)
+}
+
+function checkUpgradesAffordability(upgrades) {
+    //Checks affordability for an array of upgrades and then renders the upgrades
+
+    //Return a new array with the upgrades
+    //Each upgrade in the array will have an affordable property
+    //And it's value will be true if the player can afford it
+    //And false if the player can't afford it
+    const upgradesWithAffordabilityAdded = upgrades.map(upgrade => {
+        const affordable = gameState.cookies >= upgrade.price
+        upgrade.affordable = affordable
+        return upgrade
+    })
+
+    //Now render the upgrades
+    renderUpgrades(upgradesWithAffordabilityAdded)
+}
+
+function renderUpgrades(upgrades) {
+    const newUpgradesToRender = upgrades.filter(upgrade => !upgradesBeingRendered.includes(upgrade.id))
+    const upgradeTemplate = document.getElementById('upgrade-template')
+    const upgradesContainer = document.getElementById('buy-upgrades-container')
+    const alreadyRenderedUpgrades = upgradesBeingRendered.map(upgradeId => upgrades[upgradeId])
+    if (alreadyRenderedUpgrades.length) {
+        for (const upgrade of alreadyRenderedUpgrades) {
+            if (!upgrade) break;
+            const upgradeElement = document.getElementById(`upgrade-id-${upgrade.id}`)
+            if (upgradeElement) {
+                const affordable = gameState.cookies >= upgrade.price
+                if (affordable) {
+                    upgradeElement.classList.remove('not-affordable')
+                } else {
+                    upgradeElement.classList.add('not-affordable')
+                }
+            }
+        }
+    }
+    if (newUpgradesToRender.length) {
+        for (const upgrade of newUpgradesToRender) {
+            const upgradeDiv = upgradeTemplate.content.querySelector('div').cloneNode(true)
+            const id = `upgrade-id-${upgrade.id}`
+            upgradeDiv.style.backgroundImage = `url(${upgrade.imageSrc})`
+            upgradeDiv.id = id;
+            upgradeDiv.setAttribute('onclick', `buyUpgrade("${id}")`)
+            if (!upgrade.affordable) {
+                upgradeDiv.classList.remove('not-affordable')
+            } else {
+                upgradeDiv.classList.add('not-affordable')
+            }
+            upgradesContainer.appendChild(upgradeDiv)
+            upgradesBeingRendered.push(upgrade.id)
+        }
+    }
+}
+
+function buyUpgrade(upgradeBuyContainerId) {
+    const upgradeId = upgradeBuyContainerId.split('-')[2]
+    const upgradeToBuy = upgrades[upgradeId]
+    const affordable = gameState.cookies >= upgradeToBuy.price
+    if (affordable) {
+        console.log('Affordable')
+    }
+
+    //If the upgrade is not affordable, do nothing.
+}
+
+function removeElementChildren(element) {
+    while (element.firstChild) {
+        element.removeChild(element.lastChild)
+    }
+}
+
+function stopRenderingAllUpgrades() {
+    const upgradeContainer = document.getElementById('buy-upgrades-container')
+    removeElementChildren(upgradeContainer)
+    upgradesBeingRendered = []
+}
 
 function numberWithCommas(x) { //Function from https://stackoverflow.com/a/2901298
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -243,6 +372,7 @@ function updateCookies(amount) {
     document.title = `${cookieNumberWithCommas} Cookies`
     document.getElementById('cookie-amount').textContent = `${cookieNumberWithCommas} Cookies`
     updateBuyItemContainersBasedOnAffordability()
+    checkAvailableUpgrades()
 }
 
 function clickCookie(e) {
@@ -334,17 +464,22 @@ function refreshItemValues() {
     refreshTempleValues()
 }
 
+function refreshGame() {
+    updateCookies(0) //Display amount of cookies and update item affordability
+    calculateCPS() //Update CPS
+    //Update buyMultiplier to reflect saved game state, and also refresh item values to reflect saved game state
+    //Item values get updated in changeBuyMultiplier() after the multiplier has been set
+    changeBuyMultiplier(gameState.buyMultiplier)
+}
+
 window.onload = () => { //Get saved game state and load it
     const previousGameState = localStorage.getItem('gameState')
     if (previousGameState) {
         //If a value isn't present in localStorage gameState but is meant to be in the game's gameState, fill it in here.
         //Values should only not be present if there has been an update to the game and localStorage hasn't been updated to have the new values yet.
         gameState = {...gameState, ...JSON.parse(previousGameState)}
-        updateCookies(0) //Display amount of cookies and update item affordability
-        calculateCPS() //Update CPS
-        //Update buyMultiplier to reflect saved game state, and also refresh item values to reflect saved game state
-        //Item values get updated in changeBuyMultiplier() after the multiplier has been set
-        changeBuyMultiplier(gameState.buyMultiplier)
+        //Refresh game values
+        refreshGame()
     }
 }
 
@@ -419,4 +554,12 @@ function handleHoverLeaveItems() {
 for (let buyElement of Array.from(document.getElementsByClassName('item-buy-container'))) {
     buyElement.addEventListener('mouseenter', () => handleHoverOverItems(buyElement.id))
     buyElement.addEventListener('mouseleave', handleHoverLeaveItems)
+}
+
+function resetGame() {
+    localStorage.clear()
+    //Deep clone default game state
+    gameState = structuredClone(defaultGameState)
+    refreshGame()
+    stopRenderingAllUpgrades()
 }
