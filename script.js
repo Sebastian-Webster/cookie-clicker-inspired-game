@@ -1,4 +1,4 @@
-let gameState, defaultGameState = {
+let gameState = {
     cookies: 0,
     CPS: 0,
     clickAmount: 1,
@@ -21,6 +21,7 @@ let gameState, defaultGameState = {
     templeCPS: 7800,
     upgradesApplied: []
 }
+const defaultGameState = structuredClone(gameState)
 let currentlyHoveringOverItem;
 const upgrades = [
     {
@@ -477,7 +478,7 @@ window.onload = () => { //Get saved game state and load it
     if (previousGameState) {
         //If a value isn't present in localStorage gameState but is meant to be in the game's gameState, fill it in here.
         //Values should only not be present if there has been an update to the game and localStorage hasn't been updated to have the new values yet.
-        gameState = {...gameState, ...JSON.parse(previousGameState)}
+        gameState = {...structuredClone(defaultGameState), ...JSON.parse(previousGameState)}
         //Refresh game values
         refreshGame()
     }
