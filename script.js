@@ -507,25 +507,39 @@ function startCPSInterval() {
     }, 50)
 }
 
-window.onblur = () => {
+function handleWindowBlur() {
     if (CPSInterval) {
         clearInterval(CPSInterval)
         CPSInterval = undefined;
     }
     document.title = 'Cookie Clicker'
     timeTabUnfocused = Date.now()
+    document.getElementById('cookie-amount').textContent = 'Game Unfocused'
+    document.getElementById('cps-amount').textContent = 'Game Unfocused'
 }
 
-window.onfocus = () => {
-    const millisecondsAwayFromGame = Date.now() - timeTabUnfocused;
-    const secondsAwayFromGame = millisecondsAwayFromGame / 1000;
-    updateCookies(gameState.CPS * secondsAwayFromGame)
-    if (!CPSInterval) {
-        CPSInterval = startCPSInterval()
+function addCookieFromUnfocusedPeriod(browserClosing) {
+    if (timeTabUnfocused) {
+        const millisecondsAwayFromGame = Date.now() - timeTabUnfocused;
+        const secondsAwayFromGame = millisecondsAwayFromGame / 1000;
+        updateCookies(gameState.CPS * secondsAwayFromGame)
+        if (!browserClosing) {
+            if (!CPSInterval) {
+                CPSInterval = startCPSInterval()
+            }
+            calculateCPS()
+        }
     }
 }
 
-window.addEventListener('beforeunload', (e) => { //Save game state when closing tab / quitting browser etc.
+window.onblur = handleWindowBlur
+
+window.onfocus = () => addCookieFromUnfocusedPeriod(false)
+
+window.addEventListener('beforeunload', (e) => { 
+    //Add cookies received while tab was closed and then
+    //save game state when closing tab / quitting browser etc.
+    addCookieFromUnfocusedPeriod(true)
     localStorage.setItem('gameState', JSON.stringify(gameState))
 })
 
@@ -598,8 +612,12 @@ window.onload = () => { //Get saved game state and load it
         //Refresh game values
         refreshGame()
     }
-    //Start CPS Interval
-    CPSInterval = startCPSInterval()
+    //Start CPS Interval if the window is focused, and if the window isn't focused, set timeTabUnfocused to the current time
+    if (document.visibilityState === 'hidden') {
+        handleWindowBlur()
+    } else {
+        CPSInterval = startCPSInterval()
+    }
 }
 
 function changeBuyMultiplier(multiplier) {
