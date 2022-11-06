@@ -515,7 +515,7 @@ function handleWindowBlur() {
     document.title = 'Cookie Clicker'
     timeTabUnfocused = Date.now()
     document.getElementById('cookie-amount').textContent = 'Game Unfocused'
-    document.getElementById('cps-amount').textContent = 'Game Unfocused'
+    document.getElementById('cps-amount').textContent = 'CPS is still being added'
 }
 
 function addCookieFromUnfocusedPeriod(browserClosing) {
