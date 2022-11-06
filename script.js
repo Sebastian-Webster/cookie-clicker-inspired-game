@@ -2,43 +2,88 @@ let gameState = {
     cookies: 0,
     CPS: 0,
     clickAmount: 1,
-    clickAmountMultiplierPercentage: 100,
+    clickAmountMultiplier: 1,
     buyMultiplier: 1,
     cursorsOwned: 0,
     cursorCPS: 0.1,
+    cursorCPSMultiplier: 1,
+    nonCursorBuildingsCursorCPSMultiplier: 0,
     clicks: 0,
     grandmasOwned: 0,
     grandmaCPS: 1,
+    grandmaCPSMultiplier: 1,
     farmsOwned: 0,
     farmCPS: 8,
+    farmCPSMultiplier: 1,
     minesOwned: 0,
     mineCPS: 47,
+    mineCPSMultiplier: 1,
     factoriesOwned: 0,
     factoryCPS: 260,
+    factoryCPSMultiplier: 1,
     banksOwned: 0,
     bankCPS: 1400,
+    bankCPSMultiplier: 1,
     templesOwned: 0,
     templeCPS: 7800,
+    templeCPSMultiplier: 1,
     upgradesApplied: []
 }
 const defaultGameState = structuredClone(gameState)
+let timeTabUnfocused;
 let currentlyHoveringOverItem;
+let CPSInterval;
 const upgrades = [
     {
         name: 'Reinforced Index Finger',
-        description: 'The mouse and cursor is <b>twice</b> as efficient',
+        description: 'The mouse and cursors are <b>twice</b> as efficient.',
         quote: 'prod prod',
         price: 100,
         requirements: {
             cursorsOwned: 1
         },
         benefits: {
-            add: {
-                clickAmountMultiplierPercentage: 100
+            multiply: {
+                clickAmountMultiplier: 2,
+                cursorCPSMultiplier: 2
             }
         },
         imageSrc: 'images/upgrades/cursor/ReinforcedIndexFinger.webp',
         id: 0
+    },
+    {
+        name: 'Carpal Tunnel Prevention Cream',
+        description: 'The mouse and cursors are <b>twice</b> as efficient.',
+        quote: 'it... it hurts to click...',
+        price: 500,
+        requirements: {
+            cursorsOwned: 1
+        },
+        benefits: {
+            multiply: {
+                clickAmountMultiplier: 2,
+                cursorCPSMultiplier: 2
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/CarpalTunnelPreventionCream.webp',
+        id: 1
+    },
+    {
+        name: 'Ambidextrous',
+        description: 'The mouse and cursors are <b>twice</b> as efficient.',
+        quote: 'Look ma, both hands!',
+        price: 10_000,
+        requirements: {
+            cursorsOwned: 10
+        },
+        benefits: {
+            multiply: {
+                clickAmountMultiplier: 2,
+                cursorCPSMultiplier: 2
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/Ambidextrous.webp',
+        id: 2
     }
 ]
 let upgradesBeingRendered = []
@@ -77,6 +122,9 @@ function checkAvailableUpgrades() {
 function checkUpgradesAffordability(upgrades) {
     //Checks affordability for an array of upgrades and then renders the upgrades
 
+    //Sort upgrades by price
+    upgrades.sort((a, b) => a.price - b.price)
+
     //Return a new array with the upgrades
     //Each upgrade in the array will have an affordable property
     //And it's value will be true if the player can afford it
@@ -95,13 +143,14 @@ function renderUpgrades(upgrades) {
     const newUpgradesToRender = upgrades.filter(upgrade => !upgradesBeingRendered.includes(upgrade.id))
     const upgradeTemplate = document.getElementById('upgrade-template')
     const upgradesContainer = document.getElementById('buy-upgrades-container')
-    const alreadyRenderedUpgrades = upgradesBeingRendered.map(upgradeId => upgrades[upgradeId])
+    const alreadyRenderedUpgrades = upgradesBeingRendered.map(upgradeId => upgrades[upgrades.findIndex(upgrade => upgrade.id === upgradeId)])
     if (alreadyRenderedUpgrades.length) {
         for (const upgrade of alreadyRenderedUpgrades) {
             if (!upgrade) break;
             const upgradeElement = document.getElementById(`upgrade-id-${upgrade.id}`)
             if (upgradeElement) {
                 const affordable = gameState.cookies >= upgrade.price
+                console.log('Affordable:', affordable)
                 if (affordable) {
                     upgradeElement.classList.remove('not-affordable')
                 } else {
@@ -129,14 +178,36 @@ function renderUpgrades(upgrades) {
 }
 
 function buyUpgrade(upgradeBuyContainerId) {
-    const upgradeId = upgradeBuyContainerId.split('-')[2]
+    const upgradeId = parseInt(upgradeBuyContainerId.split('-')[2])
     const upgradeToBuy = upgrades[upgradeId]
     const affordable = gameState.cookies >= upgradeToBuy.price
+    const benefits = upgradeToBuy.benefits
+    const upgradeBuyContainer = document.getElementById(upgradeBuyContainerId)
     if (affordable) {
         console.log('Affordable')
+        if (benefits.multiply) {
+            for (const [key, value] of Object.entries(benefits.multiply)) {
+                gameState[key] *= value
+            }
+        }
+        //Benefits have been added, so now remove upgrade
+        upgradesBeingRendered.splice(upgradesBeingRendered.findIndex(upgradeID => upgradeID === upgradeId), 1) //Removes the upgrade from the upgradesBeingRendered array
+        gameState.upgradesApplied.push(upgradeId) //Add the upgrade to the upgradesApplied array
+        upgradeBuyContainer.remove() //Remove upgrade buy container as it has been bought
+        updateCookies(-upgradeToBuy.price)//Take away cost of upgrade from cookie amount
+        calculateCPS() //Recalculate CPS
     }
 
     //If the upgrade is not affordable, do nothing.
+}
+
+function returnNonCursorObjects() {
+    return gameState.grandmasOwned +
+    gameState.farmsOwned +
+    gameState.minesOwned +
+    gameState.factoriesOwned +
+    gameState.banksOwned +
+    gameState.templesOwned
 }
 
 function removeElementChildren(element) {
@@ -188,6 +259,34 @@ function returnBankPrice() {
 function returnTemplePrice() {
     //Initial price is 20 million
     return Math.floor(19_999_992 * gameState.buyMultiplier + (((gameState.templesOwned + 1) * gameState.buyMultiplier) * 2 * ((gameState.templesOwned + gameState.buyMultiplier) * 4)))
+}
+
+function returnCursorCPS() {
+    return gameState.cursorCPS * gameState.cursorCPSMultiplier
+}
+
+function returnGrandmaCPS() {
+    return gameState.grandmaCPS * gameState.grandmaCPSMultiplier
+}
+
+function returnFarmCPS() {
+    return gameState.farmCPS * gameState.farmCPSMultiplier
+}
+
+function returnMineCPS() {
+    return gameState.mineCPS * gameState.mineCPSMultiplier
+}
+
+function returnFactoryCPS() {
+    return gameState.factoryCPS * gameState.factoryCPSMultiplier
+}
+
+function returnBankCPS() {
+    return gameState.bankCPS * gameState.bankCPSMultiplier
+}
+
+function returnTempleCPS() {
+    return gameState.templeCPS * gameState.templeCPSMultiplier
 }
 
 function isCursorAffordable() {
@@ -306,13 +405,13 @@ function buyTemple() {
 
 function calculateCPS() {
     let cps = 0;
-    cps += gameState.cursorsOwned * gameState.cursorCPS
-    cps += gameState.grandmasOwned * gameState.grandmaCPS
-    cps += gameState.farmsOwned * gameState.farmCPS
-    cps += gameState.minesOwned * gameState.mineCPS
-    cps += gameState.factoriesOwned * gameState.factoryCPS
-    cps += gameState.banksOwned * gameState.bankCPS
-    cps += gameState.templesOwned * gameState.templeCPS
+    cps += gameState.cursorsOwned * returnCursorCPS()
+    cps += gameState.grandmasOwned * returnGrandmaCPS()
+    cps += gameState.farmsOwned * returnFarmCPS()
+    cps += gameState.minesOwned * returnMineCPS()
+    cps += gameState.factoriesOwned * returnFactoryCPS()
+    cps += gameState.banksOwned * returnBankCPS()
+    cps += gameState.templesOwned * returnTempleCPS()
     gameState.CPS = cps;
     document.getElementById('cps-amount').textContent = `${numberWithCommas(cps.toFixed(1))} CPS`
     if (currentlyHoveringOverItem) {
@@ -377,22 +476,19 @@ function updateCookies(amount) {
 }
 
 function clickCookie(e) {
-    console.log(e)
-    console.log('Mouse X:', e.clientX)
-    console.log('Mouse Y:', e.clientY)
     gameState.clicks += 1
+    const clickAmount = gameState.clickAmount * gameState.clickAmountMultiplier
     const addedCookiesTemplate = document.getElementById('added-cookies-from-click')
     const message = addedCookiesTemplate.content.querySelector('h2').cloneNode(true)
     const id = `${gameState.clicks.toString()}-add-cookies-message`;
-    message.textContent = `+${gameState.clickAmount}`
+    message.textContent = `+${clickAmount}`
     message.style.position = 'absolute'
     message.style.top = `${e.clientY - 30}px`
     message.style.left = `${e.clientX + (Math.random() * 30) - 30}px`
     message.style.zIndex = 2
     message.id = id
-    console.log(message)
     document.body.appendChild(message)
-    updateCookies(gameState.clickAmount)
+    updateCookies(clickAmount)
     setTimeout(() => {
         const node = document.getElementById(id)
         node.remove()
@@ -405,9 +501,29 @@ document.getElementById('cookie-image').addEventListener('click', clickCookie)
 //The reason 1/20th of the CPS is getting added every 1/20th of a second is because it makes the game feel smoother and more responsive.
 //Instead of updating the cookie count once every second, it updates it 20 times a second.
 //This makes the game look and feel smoother and faster.
-const CPSInterval = setInterval(() => {
-    updateCookies(gameState.CPS / 20)
-}, 50)
+function startCPSInterval() {
+    return setInterval(() => {
+        updateCookies(gameState.CPS / 20)
+    }, 50)
+}
+
+window.onblur = () => {
+    if (CPSInterval) {
+        clearInterval(CPSInterval)
+        CPSInterval = undefined;
+    }
+    document.title = 'Cookie Clicker'
+    timeTabUnfocused = Date.now()
+}
+
+window.onfocus = () => {
+    const millisecondsAwayFromGame = Date.now() - timeTabUnfocused;
+    const secondsAwayFromGame = millisecondsAwayFromGame / 1000;
+    updateCookies(gameState.CPS * secondsAwayFromGame)
+    if (!CPSInterval) {
+        CPSInterval = startCPSInterval()
+    }
+}
 
 window.addEventListener('beforeunload', (e) => { //Save game state when closing tab / quitting browser etc.
     localStorage.setItem('gameState', JSON.stringify(gameState))
@@ -482,6 +598,8 @@ window.onload = () => { //Get saved game state and load it
         //Refresh game values
         refreshGame()
     }
+    //Start CPS Interval
+    CPSInterval = startCPSInterval()
 }
 
 function changeBuyMultiplier(multiplier) {
@@ -506,25 +624,25 @@ function handleHoverOverItems(id) {
     let itemContainerName = id.split('-')[1]
     switch(itemContainerName) {
         case 'cursor':
-            extraCPS += gameState.cursorCPS * gameState.buyMultiplier;
+            extraCPS += returnCursorCPS() * gameState.buyMultiplier;
             break;
         case 'grandma':
-            extraCPS += gameState.grandmaCPS * gameState.buyMultiplier;
+            extraCPS += returnGrandmaCPS() * gameState.buyMultiplier;
             break;
         case 'farm':
-            extraCPS += gameState.farmCPS * gameState.buyMultiplier;
+            extraCPS += returnFarmCPS() * gameState.buyMultiplier;
             break;
         case 'mine':
-            extraCPS += gameState.mineCPS * gameState.buyMultiplier;
+            extraCPS += returnMineCPS() * gameState.buyMultiplier;
             break;
         case 'factory':
-            extraCPS += gameState.factoryCPS * gameState.buyMultiplier;
+            extraCPS += returnFactoryCPS() * gameState.buyMultiplier;
             break;
         case 'bank':
-            extraCPS += gameState.bankCPS * gameState.buyMultiplier;
+            extraCPS += returnBankCPS() * gameState.buyMultiplier;
             break;
         case 'temple':
-            extraCPS += gameState.templeCPS * gameState.buyMultiplier;
+            extraCPS += returnTempleCPS() * gameState.buyMultiplier;
             break;
         default:
             console.error('Hovered over invalid item:', itemContainerName)
