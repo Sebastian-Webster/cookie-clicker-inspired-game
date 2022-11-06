@@ -509,6 +509,7 @@ function startCPSInterval() {
 
 function handleWindowBlur() {
     if (CPSInterval) {
+        //Pause CPS Timer
         clearInterval(CPSInterval)
         CPSInterval = undefined;
     }
@@ -522,6 +523,7 @@ function addCookieFromUnfocusedPeriod(browserClosing) {
     if (timeTabUnfocused) {
         const millisecondsAwayFromGame = Date.now() - timeTabUnfocused;
         const secondsAwayFromGame = millisecondsAwayFromGame / 1000;
+        timeTabUnfocused = undefined;
         updateCookies(gameState.CPS * secondsAwayFromGame)
         if (!browserClosing) {
             if (!CPSInterval) {
@@ -532,8 +534,10 @@ function addCookieFromUnfocusedPeriod(browserClosing) {
     }
 }
 
+//When the player is no longer on the cookie clicker tab, run the handleWindowBlur function
 window.onblur = handleWindowBlur
 
+//When the player comes back on the tab, run the addCookieFromUnfocusedPeriod function
 window.onfocus = () => addCookieFromUnfocusedPeriod(false)
 
 window.addEventListener('beforeunload', (e) => { 
