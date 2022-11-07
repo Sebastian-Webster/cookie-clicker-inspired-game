@@ -84,6 +84,107 @@ const upgrades = [
         },
         imageSrc: 'images/upgrades/cursor/Ambidextrous.webp',
         id: 2
+    },
+    {
+        name: 'Thousand Fingers',
+        description: 'The mouse and cursors gain <b>+0.1</b> cookies per non-cursor item owned',
+        quote: 'clickity',
+        price: 100_000,
+        requirements: {
+            cursorsOwned: 25
+        },
+        benefits: {
+            add: {
+                nonCursorBuildingsCursorCPSMultiplier: 0.1
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/ThousandFingers.webp',
+        id: 3
+    },
+    {
+        name: 'Million Fingers',
+        description: 'Multiplies the gain from Thousand Fingers by <b>5</b>',
+        quote: 'clickityclickity',
+        price: 10_000_000,
+        requirements: {
+            cursorsOwned: 50
+        },
+        upgradeRequirements: [3],
+        benefits: {
+            multiply: {
+                nonCursorBuildingsCursorCPSMultiplier: 5
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/MillionFingers.webp',
+        id: 4
+    },
+    {
+        name: 'Billion Fingers',
+        description: 'Multiplies the gain from Thousand Fingers by <b>10</b>',
+        quote: 'clickityclickityclickity',
+        price: 100_000_000,
+        requirements: {
+            cursorsOwned: 100
+        },
+        upgradeRequirements: [3],
+        benefits: {
+            multiply: {
+                nonCursorBuildingsCursorCPSMultiplier: 10
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/BillionFingers.webp',
+        id: 5
+    },
+    {
+        name: 'Trillion Fingers',
+        description: 'Multiplies the gain from Thousand Fingers by <b>20</b>',
+        quote: 'clickityclickityclickityclickity',
+        price: 1_000_000_000,
+        requirements: {
+            cursorsOwned: 150
+        },
+        upgradeRequirements: [3],
+        benefits: {
+            mulitply: {
+                nonCursorBuildingsCursorCPSMultiplier: 20
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/TrillionFingers.webp',
+        id: 6
+    },
+    {
+        name: 'Quadrillion Fingers',
+        description: 'Multiplies the gain from Thousand Fingers by <b>20</b>',
+        quote: 'clickityclickityclickityclickityclickity',
+        price: 10_000_000_000,
+        requirements: {
+            cursorsOwned: 200
+        },
+        upgradeRequirements: [3],
+        benefits: {
+            multiply: {
+                nonCursorBuildingsCursorCPSMultiplier: 20
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/QuadrillionFingers.webp',
+        id: 7
+    },
+    {
+        name: 'Quintillion Fingers',
+        description: 'Multiplies the gain from Thousand Fingers by <b>20</b>',
+        quote: "man, just go click click click click click, it's real easy, man.",
+        price: 10_000_000_000_000, //10 trillion
+        requirements: {
+            cursorsOwned: 250
+        },
+        upgradeRequirements: [3],
+        benefits: {
+            multiply: {
+                nonCursorBuildingsCursorCPSMultiplier: 20
+            }
+        },
+        imageSrc: 'images/upgrades/cursor/QuintillionFingers.webp',
+        id: 8
     }
 ]
 let upgradesBeingRendered = []
@@ -104,6 +205,16 @@ function checkAvailableUpgrades() {
                 //Requirement is not met
                 requirementsMet = false;
                 break;
+            }
+        }
+        if (upgrade.upgradeRequirements) {
+            for (const requiredUpgrade of upgrade.upgradeRequirements) {
+                if (gameState.upgradesApplied.includes(requiredUpgrade)) {
+                    //Requirement is met
+                } else {
+                    requirementsMet = false;
+                    break;
+                }
             }
         }
         if (!requirementsMet) {
@@ -150,7 +261,6 @@ function renderUpgrades(upgrades) {
             const upgradeElement = document.getElementById(`upgrade-id-${upgrade.id}`)
             if (upgradeElement) {
                 const affordable = gameState.cookies >= upgrade.price
-                console.log('Affordable:', affordable)
                 if (affordable) {
                     upgradeElement.classList.remove('not-affordable')
                 } else {
@@ -173,6 +283,8 @@ function renderUpgrades(upgrades) {
             }
             upgradesContainer.appendChild(upgradeDiv)
             upgradesBeingRendered.push(upgrade.id)
+            upgradeDiv.addEventListener('mouseenter', (e) => handleHoverOverUpgrades(e, id))
+            upgradeDiv.addEventListener('mouseleave', handleHoverLeaveUpgrades)
         }
     }
 }
@@ -188,6 +300,11 @@ function buyUpgrade(upgradeBuyContainerId) {
         if (benefits.multiply) {
             for (const [key, value] of Object.entries(benefits.multiply)) {
                 gameState[key] *= value
+            }
+        }
+        if (benefits.add) {
+            for (const [key, value] of Object.entries(benefits.add)) {
+                gameState[key] += value
             }
         }
         //Benefits have been added, so now remove upgrade
@@ -262,7 +379,7 @@ function returnTemplePrice() {
 }
 
 function returnCursorCPS() {
-    return gameState.cursorCPS * gameState.cursorCPSMultiplier
+    return gameState.cursorCPS * gameState.cursorCPSMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())
 }
 
 function returnGrandmaCPS() {
@@ -477,7 +594,7 @@ function updateCookies(amount) {
 
 function clickCookie(e) {
     gameState.clicks += 1
-    const clickAmount = gameState.clickAmount * gameState.clickAmountMultiplier
+    const clickAmount = gameState.clickAmount * gameState.clickAmountMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())
     const addedCookiesTemplate = document.getElementById('added-cookies-from-click')
     const message = addedCookiesTemplate.content.querySelector('h2').cloneNode(true)
     const id = `${gameState.clicks.toString()}-add-cookies-message`;
@@ -649,22 +766,22 @@ function handleHoverOverItems(id) {
             extraCPS += returnCursorCPS() * gameState.buyMultiplier;
             break;
         case 'grandma':
-            extraCPS += returnGrandmaCPS() * gameState.buyMultiplier;
+            extraCPS += (returnGrandmaCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         case 'farm':
-            extraCPS += returnFarmCPS() * gameState.buyMultiplier;
+            extraCPS += (returnFarmCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         case 'mine':
-            extraCPS += returnMineCPS() * gameState.buyMultiplier;
+            extraCPS += (returnMineCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         case 'factory':
-            extraCPS += returnFactoryCPS() * gameState.buyMultiplier;
+            extraCPS += (returnFactoryCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         case 'bank':
-            extraCPS += returnBankCPS() * gameState.buyMultiplier;
+            extraCPS += (returnBankCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         case 'temple':
-            extraCPS += returnTempleCPS() * gameState.buyMultiplier;
+            extraCPS += (returnTempleCPS() + gameState.nonCursorBuildingsCursorCPSMultiplier * gameState.cursorsOwned) * gameState.buyMultiplier;
             break;
         default:
             console.error('Hovered over invalid item:', itemContainerName)
@@ -689,6 +806,14 @@ function handleHoverLeaveItems() {
     extraCPSDisplay.style.color = 'black'
     extraCPSDisplay.style.animation = 'none'
     currentlyHoveringOverItem = undefined;
+}
+
+function handleHoverOverUpgrades(e) {
+    console.log(e)
+}
+
+function handleHoverLeaveUpgrades(e) {
+    console.log(e)
 }
 
 //Loop over every buy container and add hover listeners to them
