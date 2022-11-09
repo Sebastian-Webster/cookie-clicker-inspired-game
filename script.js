@@ -145,7 +145,7 @@ const upgrades = [
         },
         upgradeRequirements: [3],
         benefits: {
-            mulitply: {
+            multiply: {
                 nonCursorBuildingsCursorCPSMultiplier: 20
             }
         },
@@ -311,8 +311,10 @@ function buyUpgrade(upgradeBuyContainerId) {
         upgradesBeingRendered.splice(upgradesBeingRendered.findIndex(upgradeID => upgradeID === upgradeId), 1) //Removes the upgrade from the upgradesBeingRendered array
         gameState.upgradesApplied.push(upgradeId) //Add the upgrade to the upgradesApplied array
         upgradeBuyContainer.remove() //Remove upgrade buy container as it has been bought
+        removeUpgradeInfoContainer() //Remove upgrade info container as the upgrade has been bought
         updateCookies(-upgradeToBuy.price)//Take away cost of upgrade from cookie amount
         calculateCPS() //Recalculate CPS
+        console.log(document.querySelectorAll('.upgrade-item:hover'))
     }
 
     //If the upgrade is not affordable, do nothing.
@@ -810,10 +812,31 @@ function handleHoverLeaveItems() {
 
 function handleHoverOverUpgrades(e) {
     console.log(e)
+    const upgradeData = upgrades[parseInt(e.target.id.split('-')[2])]
+    console.log(upgradeData)
+    const top = e.target.clientHeight + (e.target.offsetTop / 4)
+    const left = document.getElementById('buy-container').offsetLeft - 500
+    const upgradeInfoTemplate = document.getElementById('upgrade-info-template')
+    const upgradeInfoDiv = upgradeInfoTemplate.content.querySelector('div').cloneNode(true)
+    upgradeInfoDiv.style.position = 'absolute'
+    upgradeInfoDiv.style.top = top + 'px';
+    upgradeInfoDiv.style.left = left + 'px';
+    upgradeInfoDiv.querySelector('#upgrade-name').textContent = upgradeData.name
+    upgradeInfoDiv.querySelector('#upgrade-price').textContent = numberWithCommas(upgradeData.price)
+    upgradeInfoDiv.querySelector('#upgrade-description').innerHTML = upgradeData.description
+    upgradeInfoDiv.querySelector('#upgrade-quote').textContent = upgradeData.quote
+    document.body.appendChild(upgradeInfoDiv)
 }
 
-function handleHoverLeaveUpgrades(e) {
-    console.log(e)
+function removeUpgradeInfoContainer() {
+    const elementToRemove = document.getElementById('upgrade-info-container')
+    if (elementToRemove) {
+        elementToRemove.remove()
+    }
+}
+
+function handleHoverLeaveUpgrades() {
+   removeUpgradeInfoContainer()
 }
 
 //Loop over every buy container and add hover listeners to them

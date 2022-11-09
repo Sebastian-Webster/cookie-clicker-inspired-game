@@ -187,6 +187,22 @@ button.dangerous {
     background-color: gray;
 }
 
+#upgrade-info-container {
+    outline: 2px solid black;
+    width: 500px;
+    background-color: white;
+}
+
+#upgrade-name-and-price-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#upgrade-quote {
+    float: right;
+}
+
 @keyframes cookie-click {
     100% {
         transform: scale(0.95);
