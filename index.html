@@ -24,6 +24,13 @@
                 <q id="upgrade-quote"></q>
             </div>
         </template>
+        <template id="golden-cookie-prize-display-template">
+            <div id="golden-cookie-prize-display-container">
+                <h1>Lucky!</h1>
+                <h4 id="golden-cookie-prize-message"></h4>
+            </div>
+        </template>
+        <img src="images/GoldenCookie.png" alt="Golden Cookie" id="golden-cookie" onclick="handleGoldenCookieClick()">
         <noscript>
             <div id="noscript">
                 <h1>Well...</h1>
@@ -34,6 +41,7 @@
         </noscript>
         <div id="game-container">
             <div id="cookie-container">
+                <h3 id="multiplier-time-left" class="golden-cookie-multiplier-flash"></h3>
                 <h1 id="cookie-amount">0 Cookies</h1>
                 <h2 id="cps-amount">0 CPS</h2>
                 <h3 id="extra-cps-amount"></h3>

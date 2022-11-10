@@ -30,9 +30,16 @@ let gameState = {
     upgradesApplied: []
 }
 const defaultGameState = structuredClone(gameState)
+
 let timeTabUnfocused;
 let currentlyHoveringOverItem;
 let CPSInterval;
+let goldenCookieTimeout;
+let goldenCookieVisible;
+let fadeOutGoldenCookieTimeout;
+let hideGoldenCookieTimeout;
+let goldenCookieCPSMultiplier = 1;
+
 const upgrades = [
     {
         name: 'Reinforced Index Finger',
@@ -188,6 +195,10 @@ const upgrades = [
     }
 ]
 let upgradesBeingRendered = []
+
+function randomIntFromInterval(min, max) { // Function from https://stackoverflow.com/a/7228322
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
 
 function checkAvailableUpgrades() {
     //Get an array of upgrades the player has not unlocked
@@ -381,31 +392,31 @@ function returnTemplePrice() {
 }
 
 function returnCursorCPS() {
-    return gameState.cursorCPS * gameState.cursorCPSMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())
+    return (gameState.cursorCPS * gameState.cursorCPSMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())) * goldenCookieCPSMultiplier
 }
 
 function returnGrandmaCPS() {
-    return gameState.grandmaCPS * gameState.grandmaCPSMultiplier
+    return gameState.grandmaCPS * gameState.grandmaCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function returnFarmCPS() {
-    return gameState.farmCPS * gameState.farmCPSMultiplier
+    return gameState.farmCPS * gameState.farmCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function returnMineCPS() {
-    return gameState.mineCPS * gameState.mineCPSMultiplier
+    return gameState.mineCPS * gameState.mineCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function returnFactoryCPS() {
-    return gameState.factoryCPS * gameState.factoryCPSMultiplier
+    return gameState.factoryCPS * gameState.factoryCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function returnBankCPS() {
-    return gameState.bankCPS * gameState.bankCPSMultiplier
+    return gameState.bankCPS * gameState.bankCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function returnTempleCPS() {
-    return gameState.templeCPS * gameState.templeCPSMultiplier
+    return gameState.templeCPS * gameState.templeCPSMultiplier * goldenCookieCPSMultiplier
 }
 
 function isCursorAffordable() {
@@ -596,11 +607,11 @@ function updateCookies(amount) {
 
 function clickCookie(e) {
     gameState.clicks += 1
-    const clickAmount = gameState.clickAmount * gameState.clickAmountMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())
+    const clickAmount = (gameState.clickAmount * gameState.clickAmountMultiplier + (gameState.nonCursorBuildingsCursorCPSMultiplier * returnNonCursorObjects())) * goldenCookieCPSMultiplier
     const addedCookiesTemplate = document.getElementById('added-cookies-from-click')
     const message = addedCookiesTemplate.content.querySelector('h2').cloneNode(true)
     const id = `${gameState.clicks.toString()}-add-cookies-message`;
-    message.textContent = `+${clickAmount}`
+    message.textContent = `+${numberWithCommas(clickAmount.toFixed(1))}`
     message.style.position = 'absolute'
     message.style.top = `${e.clientY - 30}px`
     message.style.left = `${e.clientX + (Math.random() * 30) - 30}px`
@@ -636,6 +647,17 @@ function handleWindowBlur() {
     timeTabUnfocused = Date.now()
     document.getElementById('cookie-amount').textContent = 'Game Unfocused'
     document.getElementById('cps-amount').textContent = 'CPS is still being added'
+    if (goldenCookieTimeout) {
+        clearTimeout(goldenCookieTimeout)
+        goldenCookieTimeout = undefined;
+    }
+}
+
+function handleWindowFocus() {
+    addCookieFromUnfocusedPeriod(false)
+    if (!goldenCookieTimeout) {
+        goldenCookieTimeout = returnGoldenCookieSetTimeout()
+    }
 }
 
 function addCookieFromUnfocusedPeriod(browserClosing) {
@@ -657,7 +679,7 @@ function addCookieFromUnfocusedPeriod(browserClosing) {
 window.onblur = handleWindowBlur
 
 //When the player comes back on the tab, run the addCookieFromUnfocusedPeriod function
-window.onfocus = () => addCookieFromUnfocusedPeriod(false)
+window.onfocus = handleWindowFocus
 
 window.addEventListener('beforeunload', (e) => { 
     //Add cookies received while tab was closed and then
@@ -852,3 +874,104 @@ function resetGame() {
     refreshGame()
     stopRenderingAllUpgrades()
 }
+
+function handleGoldenCookieClick() {
+    const goldenCookie = document.getElementById('golden-cookie');
+    goldenCookie.style.animation = 'golden-cookie-fade-out 3s forwards';
+    goldenCookie.classList.add('not-clickable')
+    console.log('golden cookie click event fired')
+    if (fadeOutGoldenCookieTimeout) {
+        clearTimeout(fadeOutGoldenCookieTimeout)
+        fadeOutGoldenCookieTimeout = undefined;
+    }
+    if (hideGoldenCookieTimeout) {
+        clearTimeout(hideGoldenCookieTimeout);
+        hideGoldenCookieTimeout = undefined;
+    }
+    setTimeout(() => {
+        //After fade out animation has finished, hide the golden cookie
+        goldenCookie.style.display = 'none';
+        goldenCookieVisible = true;
+        goldenCookie.classList.remove('not-clickable')
+        goldenCookieVisible = false;
+    }, 3000);
+    const actionNumber = randomIntFromInterval(1, 2)
+    let prizeMessage;
+    if (actionNumber === 1) {
+        const secondsOfCookies = randomIntFromInterval(20, 100)
+        const cookiesToEarn = gameState.CPS * secondsOfCookies
+        updateCookies(cookiesToEarn)
+        prizeMessage = `You earnt ${secondsOfCookies} seconds worth of cookies (${numberWithCommas(cookiesToEarn.toFixed(0))} cookies)`
+    } else if (actionNumber === 2) {
+        const cookieAmount = document.getElementById('cookie-amount')
+        const CPSAmount = document.getElementById('cps-amount')
+        goldenCookieCPSMultiplier = 7;
+        prizeMessage = `CPS and Cookies per Click are multiplied by 7 for 120 seconds!`
+        calculateCPS()
+        cookieAmount.classList.add('golden-cookie-multiplier-flash')
+        CPSAmount.classList.add('golden-cookie-multiplier-flash')
+
+        let multiplierSecondsLeft = 120;
+        const multiplierTimeLeftMessage = document.getElementById('multiplier-time-left')
+        multiplierTimeLeftMessage.textContent = '7x multiplier for 120 more seconds'
+        const countdownInterval = setInterval(() => {
+            multiplierSecondsLeft -= 1;
+            multiplierTimeLeftMessage.textContent = `7x multiplier for ${multiplierSecondsLeft} more seconds`
+        }, 1000);
+
+        setTimeout(() => {
+            //After 120 seconds, clear all of the golden cookie benefits
+            multiplierTimeLeftMessage.textContent = ''
+            clearInterval(countdownInterval)
+            cookieAmount.classList.remove('golden-cookie-multiplier-flash')
+            CPSAmount.classList.remove('golden-cookie-multiplier-flash')
+            goldenCookieCPSMultiplier = 1;
+        }, 120000);
+    }
+
+    const prizeMessageTemplate = document.getElementById('golden-cookie-prize-display-template')
+    const prizeMessageContainer = prizeMessageTemplate.content.querySelector('div').cloneNode(true)
+    prizeMessageContainer.querySelector('#golden-cookie-prize-message').textContent = prizeMessage
+    document.body.appendChild(prizeMessageContainer)
+    setTimeout(() => {
+            prizeMessageContainer.style.animation = 'hide-golden-cookie-prize-message 3s forwards';
+    }, 5000);
+    setTimeout(() => {
+        prizeMessageContainer.remove()
+    }, 8000);
+}
+
+function renderGoldenCookie() {
+    goldenCookieVisible = true;
+    const goldenCookie = document.getElementById('golden-cookie');
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const top = Math.floor(Math.random() * (viewportHeight - 100));
+    const left = Math.floor(Math.random() * (viewportWidth - 100));
+    goldenCookie.style.display = 'inline';
+    goldenCookie.style.top = top + 'px';
+    goldenCookie.style.left = left + 'px';
+    goldenCookie.style.animation = 'golden-cookie-fade-in 3s';
+    fadeOutGoldenCookieTimeout = setTimeout(() => {
+        //After 10 seconds fade out the golden cookie
+        goldenCookie.style.animation = 'golden-cookie-fade-out 3s forwards';
+    }, 10000)
+    hideGoldenCookieTimeout = setTimeout(() => {
+        //Once the golden cookie has finished the fade out animation, hide it
+        goldenCookie.style.display = 'none'
+        goldenCookieVisible = false;
+        goldenCookie.classList.remove('not-clickable')
+    }, 13000)
+}
+
+function returnGoldenCookieSetTimeout() {
+    const timeoutTime = randomIntFromInterval(30, 300) * 1000 //Between 30 seconds and 5 minutes
+    console.log('Next golden cookie will be in:', timeoutTime / 1000, 'seconds.')
+    return setTimeout(() => {
+        console.log('Timeout ended')
+        if (!goldenCookieVisible && goldenCookieCPSMultiplier === 1) renderGoldenCookie()
+        goldenCookieTimeout = returnGoldenCookieSetTimeout()
+    }, timeoutTime);
+}
+
+goldenCookieTimeout = returnGoldenCookieSetTimeout()
