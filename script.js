@@ -926,6 +926,7 @@ function handleGoldenCookieClick() {
             cookieAmount.classList.remove('golden-cookie-multiplier-flash')
             CPSAmount.classList.remove('golden-cookie-multiplier-flash')
             goldenCookieCPSMultiplier = 1;
+            calculateCPS()
         }, 120000);
     }
 
