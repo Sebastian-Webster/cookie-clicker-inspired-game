@@ -287,7 +287,8 @@ function renderUpgrades(upgrades) {
             upgradeDiv.style.backgroundImage = `url(${upgrade.imageSrc})`
             upgradeDiv.id = id;
             upgradeDiv.setAttribute('onclick', `buyUpgrade("${id}")`)
-            if (!upgrade.affordable) {
+            console.log(upgrade.affordable)
+            if (upgrade.affordable) {
                 upgradeDiv.classList.remove('not-affordable')
             } else {
                 upgradeDiv.classList.add('not-affordable')
